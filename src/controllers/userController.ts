@@ -76,8 +76,6 @@ export const loginController = async (username: string, password: string): Promi
 
         const token = await generateJWTToken(auth.id, auth.username)
 
-        console.log(token)
-
         return {
             code: constants.HTTP_STATUS_OK,
             status: StatusResponseEnum.SUCCESS,
@@ -107,7 +105,6 @@ export const changePasswordController = async (username: string, password: strin
         }
 
         const comparePassword = await passwordMatcher(password, auth.password)
-        console.log("check ", comparePassword)
 
         if (!comparePassword) {
             return {

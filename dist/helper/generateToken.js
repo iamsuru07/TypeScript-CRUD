@@ -23,9 +23,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateJWTToken = void 0;
+exports.verifyToken = exports.generateJWTToken = void 0;
 const dotenv = __importStar(require("dotenv"));
 const jwt = __importStar(require("jsonwebtoken"));
+const dbUtils_1 = require("../utils/dbUtils");
+const enums_1 = require("../constants/enums");
+const http2_1 = require("http2");
 dotenv.config();
 const SECRET_KEY = process.env.JWT_SECRET;
 const generateJWTToken = async (id, username) => {
@@ -39,3 +42,40 @@ const generateJWTToken = async (id, username) => {
     return generateToken;
 };
 exports.generateJWTToken = generateJWTToken;
+const verifyToken = async (req, reply) => {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+        try {
+            token = req.headers.authorization.split(" ")[1];
+            const decoded = jwt.verify(token, SECRET_KEY);
+            const auth = await dbUtils_1.User.findOne({ where: { id: decoded.id } });
+            if (!auth) {
+                return {
+                    code: http2_1.constants.HTTP_STATUS_UNAUTHORIZED,
+                    status: enums_1.StatusResponseEnum.FAILED,
+                    message: enums_1.MessageResponseEnum.UNAUTHORIZED_USER
+                };
+            }
+            return {
+                code: http2_1.constants.HTTP_STATUS_OK,
+                status: enums_1.StatusResponseEnum.SUCCESS,
+                message: enums_1.MessageResponseEnum.UNAUTHORIZED_USER
+            };
+        }
+        catch (error) {
+            return {
+                code: http2_1.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
+                status: enums_1.StatusResponseEnum.FAILED,
+                message: error
+            };
+        }
+    }
+    if (!token) {
+        return {
+            code: http2_1.constants.HTTP_STATUS_BAD_REQUEST,
+            status: enums_1.StatusResponseEnum.FAILED,
+            message: enums_1.MessageResponseEnum.NO_ACCESS_TOKEN_PROVIDED
+        };
+    }
+};
+exports.verifyToken = verifyToken;

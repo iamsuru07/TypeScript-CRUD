@@ -61,7 +61,6 @@ const loginController = async (username, password) => {
             };
         }
         const token = await (0, generateToken_1.generateJWTToken)(auth.id, auth.username);
-        console.log(token);
         return {
             code: http2_1.constants.HTTP_STATUS_OK,
             status: enums_1.StatusResponseEnum.SUCCESS,
@@ -89,7 +88,6 @@ const changePasswordController = async (username, password, newPassword) => {
             };
         }
         const comparePassword = await (0, passwordHasher_1.passwordMatcher)(password, auth.password);
-        console.log("check ", comparePassword);
         if (!comparePassword) {
             return {
                 code: http2_1.constants.HTTP_STATUS_UNAUTHORIZED,

@@ -20,4 +20,6 @@ var MessageResponseEnum;
     MessageResponseEnum["PASSWORD_CANNOT_BE_SAME"] = "PASSWORD CAN NOT BE SAME";
     MessageResponseEnum["PASSWORD_NOT_UPDATED"] = "PASSWORD NOT UPDATED";
     MessageResponseEnum["PASSWORD_UPDATED_SUCCESSFULLY"] = "PASSWORD UPDATED SUCCESSFULLY";
+    MessageResponseEnum["UNAUTHORIZED_USER"] = "UNAUTHORIZED USER";
+    MessageResponseEnum["NO_ACCESS_TOKEN_PROVIDED"] = "NO ACCESS TOKEN PROVIDED";
 })(MessageResponseEnum || (exports.MessageResponseEnum = MessageResponseEnum = {}));
