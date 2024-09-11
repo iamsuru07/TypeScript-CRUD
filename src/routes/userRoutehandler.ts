@@ -214,7 +214,7 @@ export const updateUsernameHandler = async (req: FastifyRequest<{ Body: RequestB
 }
 
 export const deleteUserHandler = async (
-    req: any, 
+    req: any, //need to fix this like other thing is not working here
     reply: FastifyReply
 ) => {
     const { id, username } = req.params;
