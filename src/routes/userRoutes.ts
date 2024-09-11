@@ -1,7 +1,7 @@
-import { FastifyInstance, HTTPMethods } from "fastify"
-import { changePasswordHandler, loginHandler, signUpHandler } from "./userRoutehandler"
+import { FastifyInstance, HTTPMethods, RouteOptions } from "fastify"
+import { deleteUserHandler, loginHandler, signUpHandler, updatePasswordHandler, updateUsernameHandler } from "./userRoutehandler"
 import { changePasswordSchema, loginSchema, signUpSchema } from "../routeSchema/userRouteSchema"
-import { authPreHandler } from "./authPreHandler"
+import { verifyUser } from "../middlewares/verifyUser"
 const routeConfig = [
   {
     url: '/user/signup',
@@ -16,12 +16,24 @@ const routeConfig = [
     handler: loginHandler
   },
   {
-    url: '/user/changePassword',
+    url: '/user/updatePassword',
     method: 'PUT' as HTTPMethods,
     schema: changePasswordSchema,
-    preHandler: authPreHandler,
-    handler: changePasswordHandler
+    preHandler: verifyUser,
+    handler: updatePasswordHandler
   },
+  {
+    url: '/user/updateUsername',
+    method: 'PUT' as HTTPMethods,
+    preHandler: verifyUser,
+    handler: updateUsernameHandler
+  },
+  {
+    url: '/user/deleteUser/:id/:username',
+    method: 'DELETE' as HTTPMethods,
+    preHandler: verifyUser,
+    handler: deleteUserHandler
+  }
 ]
 
 const userRoutes = async (fastify: FastifyInstance) => {

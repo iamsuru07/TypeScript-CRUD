@@ -23,43 +23,52 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyToken = exports.generateJWTToken = void 0;
-const dotenv = __importStar(require("dotenv"));
-const jwt = __importStar(require("jsonwebtoken"));
-const dbUtils_1 = require("../utils/dbUtils");
+exports.verifyUser = void 0;
 const enums_1 = require("../constants/enums");
 const http2_1 = require("http2");
+const jwt = __importStar(require("jsonwebtoken"));
+const dotenv = __importStar(require("dotenv"));
+const dbUtils_1 = require("../utils/dbUtils");
 dotenv.config();
 const SECRET_KEY = process.env.JWT_SECRET;
-const generateJWTToken = async (id, username) => {
-    let generateToken = "";
-    try {
-        generateToken = await jwt.sign({ id, username }, SECRET_KEY, { expiresIn: '24h' });
+const verifyUser = async (req, reply) => {
+    const tokenResponse = await verifyToken(req);
+    if (tokenResponse.code === http2_1.constants.HTTP_STATUS_OK) {
+        return;
     }
-    catch (error) {
-        console.log(error);
-    }
-    return generateToken;
+    const response = {
+        status: tokenResponse.status,
+        message: tokenResponse.message
+    };
+    return reply.code(tokenResponse.code).send(response);
 };
-exports.generateJWTToken = generateJWTToken;
-const verifyToken = async (req, reply) => {
-    let token;
+exports.verifyUser = verifyUser;
+const verifyToken = async (req) => {
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+        let token = req.headers.authorization.split(" ")[1];
+        if (!token) {
+            return {
+                status: enums_1.StatusResponseEnum.FAILED,
+                code: http2_1.constants.HTTP_STATUS_NOT_FOUND,
+                message: enums_1.MessageResponseEnum.NO_ACCESS_TOKEN_PROVIDED
+            };
+        }
         try {
-            token = req.headers.authorization.split(" ")[1];
-            const decoded = jwt.verify(token, SECRET_KEY);
+            const decoded = await jwt.verify(token, SECRET_KEY);
             const auth = await dbUtils_1.User.findOne({ where: { id: decoded.id } });
-            if (!auth) {
-                return {
-                    code: http2_1.constants.HTTP_STATUS_UNAUTHORIZED,
-                    status: enums_1.StatusResponseEnum.FAILED,
-                    message: enums_1.MessageResponseEnum.UNAUTHORIZED_USER
-                };
+            if (auth) {
+                if (decoded.id === auth.id && decoded.username === auth.username) {
+                    return {
+                        code: http2_1.constants.HTTP_STATUS_OK,
+                        status: enums_1.StatusResponseEnum.SUCCESS,
+                        message: enums_1.MessageResponseEnum.AUTHORIZED_USER
+                    };
+                }
             }
             return {
-                code: http2_1.constants.HTTP_STATUS_OK,
-                status: enums_1.StatusResponseEnum.SUCCESS,
-                message: enums_1.MessageResponseEnum.AUTHORIZED_USER
+                code: http2_1.constants.HTTP_STATUS_UNAUTHORIZED,
+                status: enums_1.StatusResponseEnum.FAILED,
+                message: enums_1.MessageResponseEnum.UNAUTHORIZED_USER
             };
         }
         catch (error) {
@@ -70,12 +79,11 @@ const verifyToken = async (req, reply) => {
             };
         }
     }
-    if (!token) {
+    else {
         return {
-            code: http2_1.constants.HTTP_STATUS_BAD_REQUEST,
             status: enums_1.StatusResponseEnum.FAILED,
+            code: http2_1.constants.HTTP_STATUS_NOT_FOUND,
             message: enums_1.MessageResponseEnum.NO_ACCESS_TOKEN_PROVIDED
         };
     }
 };
-exports.verifyToken = verifyToken;

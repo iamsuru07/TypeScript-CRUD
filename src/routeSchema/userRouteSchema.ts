@@ -60,9 +60,18 @@ export const loginSchema: FastifySchema = {
             properties: {
                 status: { type: "string" },
                 message: { type: "string" },
-                token: { type: "string" }
+                token: { type: "string" },
+                user: {
+                    type: "object",
+                    properties: {
+                        id: { type: "number" },
+                        username: { type: "string" },
+                        created_at: { type: "string", format: "date-time" },
+                        updated_at: { type: "string", format: "date-time" }
+                    }
+                }
             },
-            required: ["status", "message", "token"],
+            required: ["status", "message", "token", "user"],
         },
         400: {
             type: "object",

@@ -1,25 +1,33 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { constants } from "http2";
 import { MessageResponseEnum, StatusResponseEnum } from "../constants/enums";
-import { changePasswordController, loginController, signUpController } from "../controllers/userController";
+import { deleteUserController, loginController, signUpController, updatePasswordController, updateUsernameController } from "../controllers/userController";
 
 interface RequestBody {
     username: string;
     password: string;
+    newUsername: string;
     newPassword: string;
 }
 
-interface ReplyBody {
-    status: string;
-    message: string;
-    token?: string
+interface DeleteUserParams {
+    id: string;
+    username: string;
 }
 
-interface responseDataObject {
-    code: number,
-    status: string,
-    message: string,
-    token?: string
+export interface ReplyBody {
+    status: string;
+    message: string | unknown;
+    token?: string;
+    user?: Object;
+}
+
+export interface ResponseDataObject {
+    code: number;
+    status: string;
+    message: string | unknown;
+    token?: string;
+    user?: Object;
 }
 
 export const signUpHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply) => {
@@ -43,7 +51,7 @@ export const signUpHandler = async (req: FastifyRequest<{ Body: RequestBody }>, 
             })
         }
 
-        const responseData: responseDataObject = await signUpController(username, password)
+        const responseData: ResponseDataObject = await signUpController(username, password)
 
         let response: ReplyBody = {
             status: responseData.status,
@@ -91,11 +99,12 @@ export const loginHandler = async (req: FastifyRequest<{ Body: RequestBody }>, r
             })
         }
 
-        const responseData: responseDataObject = await loginController(username, password)
+        const responseData: ResponseDataObject = await loginController(username, password)
 
         let response: ReplyBody = {
             status: responseData.status,
             message: responseData.message,
+            user: responseData.user,
             token: responseData.token
         }
 
@@ -119,13 +128,13 @@ export const loginHandler = async (req: FastifyRequest<{ Body: RequestBody }>, r
 };
 
 
-export const changePasswordHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply) => {
+export const updatePasswordHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply) => {
     const reqBody = req.body;
 
     const username: string = reqBody.username
     const password: string = reqBody.password
     const newPassword: string = reqBody.newPassword
-    
+
     if (!username) {
         return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
             status: StatusResponseEnum.FAILED,
@@ -147,14 +156,14 @@ export const changePasswordHandler = async (req: FastifyRequest<{ Body: RequestB
         })
     }
 
-    if(password===newPassword){
+    if (password === newPassword) {
         return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
             status: StatusResponseEnum.FAILED,
             message: MessageResponseEnum.PASSWORD_CANNOT_BE_SAME
         })
     }
 
-    const responseData:responseDataObject = await changePasswordController(username,password,newPassword)
+    const responseData: ResponseDataObject = await updatePasswordController(username, password, newPassword)
 
     let response: ReplyBody = {
         status: responseData.status,
@@ -163,3 +172,73 @@ export const changePasswordHandler = async (req: FastifyRequest<{ Body: RequestB
 
     return reply.code(responseData.code).send(response);
 }
+
+export const updateUsernameHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply) => {
+
+    const reqBody = req.body;
+
+    const username: string = reqBody.username
+    const newUsername: string = reqBody.newUsername
+
+    if (!username) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.USERNAME_IS_REQUIRED
+        })
+    }
+
+    if (!newUsername) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.NEW_USERNAME_IS_REQUIRED
+        })
+    }
+
+    if (username === newUsername) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.USERNAME_CANNOT_BE_SAME
+        })
+    }
+
+    const responseData: ResponseDataObject = await updateUsernameController(username, newUsername)
+
+    let response: ReplyBody = {
+        status: responseData.status,
+        message: responseData.message,
+        user: responseData.user,
+        token: responseData.token
+    }
+
+    return reply.code(responseData.code).send(response);
+}
+
+export const deleteUserHandler = async (
+    req: any, 
+    reply: FastifyReply
+) => {
+    const { id, username } = req.params;
+
+    if (!id) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.ID_IS_REQUIRED
+        });
+    }
+
+    if (!username) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.USERNAME_IS_REQUIRED
+        });
+    }
+
+    const responseData = await deleteUserController(Number(id), username);
+
+    const response: ReplyBody = {
+        status: responseData.status,
+        message: responseData.message
+    };
+
+    return reply.code(responseData.code).send(response);
+};

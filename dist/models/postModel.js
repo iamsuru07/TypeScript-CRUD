@@ -3,40 +3,43 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = default_1;
 const sequelize_1 = require("sequelize");
 function default_1(sequelize) {
-    class User extends sequelize_1.Model {
+    class Post extends sequelize_1.Model {
     }
-    User.init({
+    Post.init({
         id: {
             type: sequelize_1.DataTypes.INTEGER,
             autoIncrement: true,
             primaryKey: true,
         },
-        username: {
-            type: sequelize_1.DataTypes.STRING,
-            allowNull: false,
-            unique: true,
+        user_id: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false
         },
-        password: {
+        content: {
             type: sequelize_1.DataTypes.STRING,
-            allowNull: false,
+            allowNull: false
+        },
+        category: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false
         },
         created_at: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
-            defaultValue: sequelize_1.DataTypes.NOW,
+            defaultValue: sequelize.fn('now'),
         },
         updated_at: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
-            defaultValue: sequelize_1.DataTypes.NOW,
+            defaultValue: sequelize.fn('now'),
         },
     }, {
         sequelize,
-        tableName: 'users',
+        tableName: 'posts_data',
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
         underscored: true,
         timestamps: true,
-        createdAt: 'created_at',
-        updatedAt: 'updated_at'
     });
-    return User;
+    return Post;
 }

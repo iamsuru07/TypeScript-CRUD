@@ -38,7 +38,7 @@ export const verifyToken = async (req: FastifyRequest, reply: FastifyReply) => {
             return {
                 code: constants.HTTP_STATUS_OK,
                 status: StatusResponseEnum.SUCCESS,
-                message: MessageResponseEnum.UNAUTHORIZED_USER
+                message: MessageResponseEnum.AUTHORIZED_USER
             }
 
         } catch (error) {

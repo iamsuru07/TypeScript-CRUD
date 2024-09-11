@@ -1,22 +1,25 @@
-const sequelize = require('sequelize');
-const { DataTypes } = require('sequelize');
+const sequelize = require("sequelize");
+const { DataTypes } = require("sequelize");
 
 module.exports = {
   up: async (queryInterface) => {
-    await queryInterface.createTable('users', {
+    await queryInterface.createTable("posts_data", {
       id: {
-        type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
+        type: DataTypes.INTEGER,
       },
-      username: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
+      user_id: {
+        type: DataTypes.INTEGER,
+        allowNull:false
       },
-      password: {
+      content: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull:false
+      },
+      category: {
+        type: DataTypes.STRING,
+        allowNull:false
       },
       created_at: {
         type: DataTypes.DATE,
@@ -30,8 +33,7 @@ module.exports = {
       },
     });
   },
-
   down: async (queryInterface) => {
-    await queryInterface.dropTable('users');
+    await queryInterface.dropTable('posts_data');
   },
 };

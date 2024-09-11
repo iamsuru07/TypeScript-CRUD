@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changePasswordHandler = exports.loginHandler = exports.signUpHandler = void 0;
+exports.updateUsernameHandler = exports.updatePasswordHandler = exports.loginHandler = exports.signUpHandler = void 0;
 const http2_1 = require("http2");
 const enums_1 = require("../constants/enums");
 const userController_1 = require("../controllers/userController");
@@ -65,6 +65,7 @@ const loginHandler = async (req, reply) => {
         let response = {
             status: responseData.status,
             message: responseData.message,
+            user: responseData.user,
             token: responseData.token
         };
         return reply.code(responseData.code).send(response);
@@ -85,7 +86,7 @@ const loginHandler = async (req, reply) => {
     }
 };
 exports.loginHandler = loginHandler;
-const changePasswordHandler = async (req, reply) => {
+const updatePasswordHandler = async (req, reply) => {
     const reqBody = req.body;
     const username = reqBody.username;
     const password = reqBody.password;
@@ -114,11 +115,43 @@ const changePasswordHandler = async (req, reply) => {
             message: enums_1.MessageResponseEnum.PASSWORD_CANNOT_BE_SAME
         });
     }
-    const responseData = await (0, userController_1.changePasswordController)(username, password, newPassword);
+    const responseData = await (0, userController_1.updatePasswordController)(username, password, newPassword);
     let response = {
         status: responseData.status,
         message: responseData.message
     };
     return reply.code(responseData.code).send(response);
 };
-exports.changePasswordHandler = changePasswordHandler;
+exports.updatePasswordHandler = updatePasswordHandler;
+const updateUsernameHandler = async (req, reply) => {
+    const reqBody = req.body;
+    const username = reqBody.username;
+    const newUsername = reqBody.newUsername;
+    if (!username) {
+        return reply.code(http2_1.constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: enums_1.StatusResponseEnum.FAILED,
+            message: enums_1.MessageResponseEnum.USERNAME_IS_REQUIRED
+        });
+    }
+    if (!newUsername) {
+        return reply.code(http2_1.constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: enums_1.StatusResponseEnum.FAILED,
+            message: enums_1.MessageResponseEnum.NEW_USERNAME_IS_REQUIRED
+        });
+    }
+    if (username === newUsername) {
+        return reply.code(http2_1.constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: enums_1.StatusResponseEnum.FAILED,
+            message: enums_1.MessageResponseEnum.USERNAME_CANNOT_BE_SAME
+        });
+    }
+    const responseData = await (0, userController_1.updateUsernameController)(username, newUsername);
+    let response = {
+        status: responseData.status,
+        message: responseData.message,
+        user: responseData.user,
+        token: responseData.token
+    };
+    return reply.code(responseData.code).send(response);
+};
+exports.updateUsernameHandler = updateUsernameHandler;

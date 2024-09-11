@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize';
 import * as dotenv from 'dotenv';
 import UserModel from '../models/userModel';
+import PostModel from '../models/postModel'
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
 });
 
 const User = UserModel(sequelize);
+const Post = PostModel(sequelize);
 
 const syncDatabase = async () => {
     try {
@@ -38,4 +40,4 @@ export const connectToDatabase = async () => {
     }
 };
 
-export { sequelize, User };
+export { sequelize, User, Post };

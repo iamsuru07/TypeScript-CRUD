@@ -26,10 +26,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.User = exports.sequelize = exports.connectToDatabase = void 0;
+exports.Post = exports.User = exports.sequelize = exports.connectToDatabase = void 0;
 const sequelize_1 = require("sequelize");
 const dotenv = __importStar(require("dotenv"));
 const userModel_1 = __importDefault(require("../models/userModel"));
+const postModel_1 = __importDefault(require("../models/postModel"));
 dotenv.config();
 const DB_NAME = process.env.DB_NAME;
 const DB_USER = process.env.DB_USER;
@@ -45,6 +46,8 @@ const sequelize = new sequelize_1.Sequelize(DB_NAME, DB_USER, DB_PASS, {
 exports.sequelize = sequelize;
 const User = (0, userModel_1.default)(sequelize);
 exports.User = User;
+const Post = (0, postModel_1.default)(sequelize);
+exports.Post = Post;
 const syncDatabase = async () => {
     try {
         await sequelize.sync();

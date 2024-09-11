@@ -3,11 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authPreHandler = void 0;
 const generateToken_1 = require("../helper/generateToken");
 const http2_1 = require("http2");
-const authPreHandler = async (req, reply, done) => {
+const authPreHandler = async (req, reply) => {
     try {
         const isVerifiedToken = await (0, generateToken_1.verifyToken)(req, reply);
         if ((isVerifiedToken === null || isVerifiedToken === void 0 ? void 0 : isVerifiedToken.code) === http2_1.constants.HTTP_STATUS_OK) {
-            done();
             return;
         }
         const response = {
@@ -18,7 +17,7 @@ const authPreHandler = async (req, reply, done) => {
     }
     catch (error) {
         console.log(error);
-        return reply.code(500).send(error);
+        return reply.code(http2_1.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send(error);
     }
 };
 exports.authPreHandler = authPreHandler;
