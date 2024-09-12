@@ -1,32 +1,38 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { constants } from "http2";
 import { MessageResponseEnum, StatusResponseEnum } from "../constants/enums";
-import { createPostController, getAllPostController } from "../controllers/postController";
+import { createPostController, deletePostController, getAllPostController, getPostByFilterController, updatePostController } from "../controllers/postController";
+import { QueryResult } from "mysql2";
 
 interface RequestBody {
     id: number,
-    content: string;
-    category: string;
+    post_id: number,
+    content?: string;
+    category?: string;
 }
 
-interface responseDataObject {
+interface RequestQuery {
+    id: number,
+    category?: string,
+    username?: string
+}
+interface ResponseDataObject {
     code: number,
     status: string,
-    message: string,
+    message?: string,
+    data?: Array<Object> | QueryResult
 }
 
 interface ReplyBody {
     status: string;
-    message: string | any;
-    data?: Array<Object>
+    message?: string | any;
+    data?: Array<Object> | QueryResult
 }
 
-export const createPosthandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply) => {
-    const reqBody = req.body;
+export const createPosthandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
+    const reqBody: RequestBody = req.body;
 
-    const id: number = reqBody.id
-    const content: string = reqBody.content
-    const category: string = reqBody.category
+    const { id, content, category }: RequestBody = reqBody
 
     if (!id) {
         return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
@@ -49,35 +55,96 @@ export const createPosthandler = async (req: FastifyRequest<{ Body: RequestBody 
         })
     }
 
-    try {
-        const responseData: responseDataObject = await createPostController(id, category, content);
+    const responseData: ResponseDataObject = await createPostController(id, category, content);
 
-        let response: ReplyBody = {
-            status: responseData.status,
-            message: responseData.message
-        }
-
-        return reply.code(responseData.code).send(response)
-    } catch (error) {
-        let response: ReplyBody = {
-            status: StatusResponseEnum.FAILED,
-            message: error
-        }
-
-        return reply.code(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send(response)
+    let response: ReplyBody = {
+        status: responseData.status,
+        message: responseData.message
     }
+
+    return reply.code(responseData.code).send(response)
 }
 
-export const getAllPosts = async (req: FastifyRequest, reply: FastifyReply) => {
-    try {
-        const response = await getAllPostController();
-        return reply.code(200).send(response)
-    } catch (error) {
-        let response: ReplyBody = {
-            status: StatusResponseEnum.FAILED,
-            message: error
-        }
+export const getAllPostsHandler = async (req: FastifyRequest, reply: FastifyReply): Promise<ReplyBody> => {
+    const responseData: ResponseDataObject = await getAllPostController();
 
-        return reply.code(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send(response)
+    let response: ReplyBody = {
+        status: responseData.status,
+        data: responseData.data
     }
+
+    return reply.code(responseData.code).send(response)
+}
+
+export const getPostsByFilterHandler = async (req: any, reply: FastifyReply): Promise<ReplyBody> => {
+    const { id, category, username }: RequestQuery = req.query
+    if (!id && !category && !username) {
+        reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.ALL_PARAMS_ARE_EMPTY
+        })
+    }
+
+    const responseData: ResponseDataObject = await getPostByFilterController(Number(id), category, username);
+
+    let response: ReplyBody = {
+        status: responseData.status,
+        data: responseData.data,
+        message: responseData.message
+    }
+
+    return reply.code(responseData.code).send(response);
+}
+
+export const updatePostHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
+    const { id, post_id, content, category }: RequestBody = req.body
+
+    if (!id) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.ID_IS_NOT_PROVIDED,
+        })
+    }
+
+    if (!post_id) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.POST_ID_IS_NOT_PROVIDED,
+        })
+    }
+
+    if (!content && !category) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: `${MessageResponseEnum.CATEGORY_IS_NOT_PROVIDED} & ${MessageResponseEnum.CONTENT_IS_NOT_PROVIDED} BOTH ARE NOT PROVIDED`,
+        })
+    }
+
+    const responseData: ResponseDataObject = await updatePostController(post_id, category, content);
+
+    let response: ReplyBody = {
+        status: responseData.status,
+        message: responseData.message
+    }
+
+    return reply.code(responseData.code).send(response)
+}
+
+export const deletePostHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
+    const { post_id }: RequestBody = req.body;
+    if (!post_id) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.POST_ID_IS_NOT_PROVIDED,
+        })
+    }
+
+    const responseData: ResponseDataObject = await deletePostController(post_id);
+
+    let response: ReplyBody = {
+        status: responseData.status,
+        message: responseData.message
+    }
+
+    return reply.code(responseData.code).send(response)
 }

@@ -6,5 +6,4 @@ const routes = async (fastify: FastifyInstance) => {
     await userRoutes(fastify);
     await thoughtUploaderRoutes(fastify);
 };
-
 export default routes;

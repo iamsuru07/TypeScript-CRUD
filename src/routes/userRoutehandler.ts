@@ -30,106 +30,70 @@ export interface ResponseDataObject {
     user?: Object;
 }
 
-export const signUpHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply) => {
-    try {
-        const reqBody = req.body;
+export const signUpHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
+    const reqBody: RequestBody = req.body;
 
-        const username: string = reqBody.username
-        const password: string = reqBody.password
+    const username: string = reqBody.username
+    const password: string = reqBody.password
 
-        if (!username) {
-            return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
-                status: StatusResponseEnum.FAILED,
-                message: MessageResponseEnum.USERNAME_IS_REQUIRED
-            })
-        }
-
-        if (!password) {
-            return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
-                status: StatusResponseEnum.FAILED,
-                message: MessageResponseEnum.PASSWORD_IS_REQUIRED
-            })
-        }
-
-        const responseData: ResponseDataObject = await signUpController(username, password)
-
-        let response: ReplyBody = {
-            status: responseData.status,
-            message: responseData.message
-        }
-
-        return reply.code(responseData.code).send(response);
-    } catch (error) {
-        let errorMessage: string;
-
-        if (error instanceof Error) {
-            errorMessage = error.message;
-        } else {
-            errorMessage = String(error)
-        }
-
-        const response: ReplyBody = {
+    if (!username) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
             status: StatusResponseEnum.FAILED,
-            message: errorMessage,
-        };
-
-        return reply.code(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send(response);
+            message: MessageResponseEnum.USERNAME_IS_REQUIRED
+        })
     }
+
+    if (!password) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.PASSWORD_IS_REQUIRED
+        })
+    }
+
+    const responseData: ResponseDataObject = await signUpController(username, password)
+
+    let response: ReplyBody = {
+        status: responseData.status,
+        message: responseData.message
+    }
+
+    return reply.code(responseData.code).send(response);
 };
 
+export const loginHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
+    const reqBody: RequestBody = req.body;
 
-export const loginHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply) => {
-    try {
-        const reqBody = req.body;
+    const username: string = reqBody.username
+    const password: string = reqBody.password
 
-        const username: string = reqBody.username
-        const password: string = reqBody.password
-
-        if (!username) {
-            return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
-                status: StatusResponseEnum.FAILED,
-                message: MessageResponseEnum.USERNAME_IS_REQUIRED
-            })
-        }
-
-        if (!password) {
-            return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
-                status: StatusResponseEnum.FAILED,
-                message: MessageResponseEnum.PASSWORD_IS_REQUIRED
-            })
-        }
-
-        const responseData: ResponseDataObject = await loginController(username, password)
-
-        let response: ReplyBody = {
-            status: responseData.status,
-            message: responseData.message,
-            user: responseData.user,
-            token: responseData.token
-        }
-
-        return reply.code(responseData.code).send(response);
-    } catch (error) {
-        let errorMessage: string;
-
-        if (error instanceof Error) {
-            errorMessage = error.message;
-        } else {
-            errorMessage = String(error)
-        }
-
-        const response: ReplyBody = {
+    if (!username) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
             status: StatusResponseEnum.FAILED,
-            message: errorMessage,
-        };
-
-        return reply.code(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR).send(response);
+            message: MessageResponseEnum.USERNAME_IS_REQUIRED
+        })
     }
-};
 
+    if (!password) {
+        return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.PASSWORD_IS_REQUIRED
+        })
+    }
 
-export const updatePasswordHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply) => {
-    const reqBody = req.body;
+    const responseData: ResponseDataObject = await loginController(username, password)
+
+    let response: ReplyBody = {
+        status: responseData.status,
+        message: responseData.message,
+        user: responseData.user,
+        token: responseData.token
+    }
+
+    return reply.code(responseData.code).send(response);
+}
+
+export const updatePasswordHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
+    const reqBody: RequestBody = req.body;
 
     const username: string = reqBody.username
     const password: string = reqBody.password
@@ -173,9 +137,9 @@ export const updatePasswordHandler = async (req: FastifyRequest<{ Body: RequestB
     return reply.code(responseData.code).send(response);
 }
 
-export const updateUsernameHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply) => {
+export const updateUsernameHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
 
-    const reqBody = req.body;
+    const reqBody: RequestBody = req.body;
 
     const username: string = reqBody.username
     const newUsername: string = reqBody.newUsername
@@ -216,8 +180,8 @@ export const updateUsernameHandler = async (req: FastifyRequest<{ Body: RequestB
 export const deleteUserHandler = async (
     req: any, //need to fix this like other thing is not working here
     reply: FastifyReply
-) => {
-    const { id, username } = req.params;
+): Promise<ReplyBody> => {
+    const { id, username }: DeleteUserParams = req.params;
 
     if (!id) {
         return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
@@ -233,7 +197,7 @@ export const deleteUserHandler = async (
         });
     }
 
-    const responseData = await deleteUserController(Number(id), username);
+    const responseData: ResponseDataObject = await deleteUserController(Number(id), username);
 
     const response: ReplyBody = {
         status: responseData.status,

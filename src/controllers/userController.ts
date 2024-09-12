@@ -24,7 +24,7 @@ export const signUpController = async (username: string, password: string): Prom
             };
         }
 
-        const hashedPassword = await passwordHasher(password);
+        const hashedPassword: string = await passwordHasher(password);
 
         // Create a new user
         const response = await User.create({ username: username, password: hashedPassword });
@@ -40,13 +40,17 @@ export const signUpController = async (username: string, password: string): Prom
         return {
             code: constants.HTTP_STATUS_BAD_REQUEST,
             status: StatusResponseEnum.FAILED,
-            message: MessageResponseEnum.USER_CREATED_SUCCESSFULLY,
+            message: MessageResponseEnum.REQUEST_NOT_FULFILLED,
         };
     } catch (error) {
+        let errorString: string = ""
+        if (error instanceof Error) {
+            errorString = error.message
+        }
         return {
             code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
             status: StatusResponseEnum.FAILED,
-            message: MessageResponseEnum.INTERNAL_SERVER_ERROR,
+            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
         };
     }
 };
@@ -64,7 +68,7 @@ export const loginController = async (username: string, user_password: string): 
             };
         }
 
-        const comparePassword = await passwordMatcher(user_password, auth.password)
+        const comparePassword: boolean = await passwordMatcher(user_password, auth.password)
 
         if (!comparePassword) {
             return {
@@ -74,7 +78,7 @@ export const loginController = async (username: string, user_password: string): 
             };
         }
 
-        const token = await generateJWTToken(auth.id, auth.username)
+        const token: string = await generateJWTToken(auth.id, auth.username)
 
         const { password, ...authWithoutPassword } = auth;
 
@@ -86,17 +90,20 @@ export const loginController = async (username: string, user_password: string): 
             token: token
         };
     } catch (error) {
+        let errorString: string = ""
+        if (error instanceof Error) {
+            errorString = error.message
+        }
         return {
             code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
             status: StatusResponseEnum.FAILED,
-            message: MessageResponseEnum.INTERNAL_SERVER_ERROR,
+            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
         };
     }
 };
 
 export const updatePasswordController = async (username: string, password: string, newPassword: string): Promise<ReplyBody> => {
     try {
-
         const auth = await User.findOne({ where: { username }, raw: true })
 
         if (!auth) {
@@ -107,7 +114,7 @@ export const updatePasswordController = async (username: string, password: strin
             };
         }
 
-        const comparePassword = await passwordMatcher(password, auth.password)
+        const comparePassword: boolean = await passwordMatcher(password, auth.password)
 
         if (!comparePassword) {
             return {
@@ -117,13 +124,13 @@ export const updatePasswordController = async (username: string, password: strin
             };
         }
 
-        const hashedPassword = await passwordHasher(newPassword);
+        const hashedPassword: string = await passwordHasher(newPassword);
 
         const updatedAuth = await User.update({ password: hashedPassword }, { where: { username } })
 
         if (!updatedAuth) {
             return {
-                code: constants.HTTP_STATUS_BAD_GATEWAY,
+                code: constants.HTTP_STATUS_BAD_REQUEST,
                 status: StatusResponseEnum.FAILED,
                 message: MessageResponseEnum.PASSWORD_NOT_UPDATED,
             };
@@ -135,10 +142,14 @@ export const updatePasswordController = async (username: string, password: strin
             message: MessageResponseEnum.PASSWORD_UPDATED_SUCCESSFULLY,
         };
     } catch (error) {
+        let errorString: string = ""
+        if (error instanceof Error) {
+            errorString = error.message
+        }
         return {
             code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
             status: StatusResponseEnum.FAILED,
-            message: MessageResponseEnum.INTERNAL_SERVER_ERROR,
+            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
         };
     }
 };
@@ -164,11 +175,11 @@ export const updateUsernameController = async (username: string, newUsername: st
             };
         }
 
-        const updatedAuth = await User.update({ username: newUsername }, { where: { username } })
+        const updatedAuth: [number] = await User.update({ username: newUsername }, { where: { username } })
 
         if (!updatedAuth) {
             return {
-                code: constants.HTTP_STATUS_BAD_GATEWAY,
+                code: constants.HTTP_STATUS_BAD_REQUEST,
                 status: StatusResponseEnum.FAILED,
                 message: MessageResponseEnum.USERNAME_NOT_UPDATED,
             };
@@ -190,17 +201,21 @@ export const updateUsernameController = async (username: string, newUsername: st
             token: token
         };
     } catch (error) {
+        let errorString: string = ""
+        if (error instanceof Error) {
+            errorString = error.message
+        }
         return {
             code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
             status: StatusResponseEnum.FAILED,
-            message: MessageResponseEnum.INTERNAL_SERVER_ERROR,
+            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
         };
     }
 }
 
 export const deleteUserController = async (id: number, username: string): Promise<ReplyBody> => {
     try {
-        const isUserDeleted = await User.destroy({ where: { id: id, username: username } })
+        const isUserDeleted: number = await User.destroy({ where: { id: id, username: username } })
 
         if (isUserDeleted === 0) {
             return {
@@ -210,16 +225,27 @@ export const deleteUserController = async (id: number, username: string): Promis
             };
         }
 
-        else if (isUserDeleted > 0) {
+        if (isUserDeleted > 0) {
             //delete post as well
-            const isPostDeleted = await Post.destroy({ where: { user_id: id } })
-            if (isPostDeleted > 0) {
+            //first check that user created some post or not
+            const hasSomePost = await Post.findAll({ where: { user_id: id } });
+            if (hasSomePost.length > 0) {
+                const isPostDeleted = await Post.destroy({ where: { user_id: id } })
+                if (isPostDeleted > 0) {
+                    return {
+                        code: constants.HTTP_STATUS_OK,
+                        status: StatusResponseEnum.SUCCESS,
+                        message: MessageResponseEnum.USER_ACCOUNT_DELETED
+                    };
+                }
+            } else {
                 return {
                     code: constants.HTTP_STATUS_OK,
                     status: StatusResponseEnum.SUCCESS,
                     message: MessageResponseEnum.USER_ACCOUNT_DELETED
                 };
             }
+
         }
         return {
             code: constants.HTTP_STATUS_BAD_REQUEST,
@@ -229,10 +255,14 @@ export const deleteUserController = async (id: number, username: string): Promis
 
     } catch (error) {
         console.error('Error deleting user:', error);
+        let errorString: string = ""
+        if (error instanceof Error) {
+            errorString = error.message
+        }
         return {
             code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
             status: StatusResponseEnum.FAILED,
-            message: error
+            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
         };
     }
 };

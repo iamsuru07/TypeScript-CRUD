@@ -8,6 +8,8 @@ dotenv.config()
 
 const SECRET_KEY: string = process.env.JWT_SECRET!
 
+//used for verifying that the user is verified or not by using the given id in [params,body.query] by comparing with the given token
+
 export const verifyUser = async (req: FastifyRequest, reply: FastifyReply) => {
     const tokenResponse = await verifyToken(req);
     if (tokenResponse.code === constants.HTTP_STATUS_OK) {
@@ -34,13 +36,25 @@ const verifyToken = async (req: FastifyRequest) => {
             }
         }
 
+        //need to fix this as any is not a good choice
+        const { id }: any = req.body || req.params || req.query
+
+        if (!id) {
+            return {
+                status: StatusResponseEnum.FAILED,
+                code: constants.HTTP_STATUS_NOT_FOUND,
+                message: MessageResponseEnum.IMPROPER_DETAILS_ARE_PROVIDED
+            }
+        }
+
         try {
             const decoded: any = await jwt.verify(token, SECRET_KEY);
 
-            const auth = await User.findOne({ where: { id: decoded.id } })
+            const authByToken = await User.findOne({ where: { id: decoded.id } })
+            const authByGivenId = await User.findOne({ where: { id } })
 
-            if (auth) {
-                if (decoded.id === auth.id && decoded.username === auth.username) {
+            if (authByToken) {
+                if (authByGivenId && (authByGivenId.id === authByToken.id && authByGivenId.username === authByToken.username)) {
                     return {
                         code: constants.HTTP_STATUS_OK,
                         status: StatusResponseEnum.SUCCESS,
@@ -65,7 +79,7 @@ const verifyToken = async (req: FastifyRequest) => {
         return {
             status: StatusResponseEnum.FAILED,
             code: constants.HTTP_STATUS_NOT_FOUND,
-            message: MessageResponseEnum.NO_ACCESS_TOKEN_PROVIDED
+            message: MessageResponseEnum.NO_HEADER_PROVIDED
         }
     }
 }

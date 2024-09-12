@@ -25,7 +25,7 @@ const startServer = async () => {
       server.log.error(err);
       process.exit(1);
     } else {
-      server.log.info(`Attribution service server running`, {
+      server.log.info(`Server running`, {
         data: {
           payload: {
             port: PORT
