@@ -1,9 +1,8 @@
-import { sequelize, User } from "../utils/dbUtils";
+import { Post, User } from "../utils/dbUtils";
 import { constants } from "http2";
 import { MessageResponseEnum, StatusResponseEnum } from "../constants/enums";
 import { passwordHasher, passwordMatcher } from "../helper/passwordHasher";
 import { generateJWTToken } from "../helper/generateToken";
-import { QueryTypes } from "sequelize";
 
 interface ReplyBody {
     code: number;
@@ -51,7 +50,6 @@ export const signUpController = async (username: string, password: string): Prom
         };
     }
 };
-
 
 export const loginController = async (username: string, user_password: string): Promise<ReplyBody> => {
     try {
@@ -202,21 +200,33 @@ export const updateUsernameController = async (username: string, newUsername: st
 
 export const deleteUserController = async (id: number, username: string): Promise<ReplyBody> => {
     try {
-        const affectedRows = await User.destroy({ where: { id: id, username: username } })
+        const isUserDeleted = await User.destroy({ where: { id: id, username: username } })
 
-        if (affectedRows > 0) {
-            return {
-                code: constants.HTTP_STATUS_OK,
-                status: StatusResponseEnum.SUCCESS,
-                message: MessageResponseEnum.USER_ACCOUNT_DELETED
-            };
-        } else {
+        if (isUserDeleted === 0) {
             return {
                 code: constants.HTTP_STATUS_NOT_FOUND,
                 status: StatusResponseEnum.FAILED,
                 message: MessageResponseEnum.USER_DOES_NOT_EXISTS
             };
         }
+
+        else if (isUserDeleted > 0) {
+            //delete post as well
+            const isPostDeleted = await Post.destroy({ where: { user_id: id } })
+            if (isPostDeleted > 0) {
+                return {
+                    code: constants.HTTP_STATUS_OK,
+                    status: StatusResponseEnum.SUCCESS,
+                    message: MessageResponseEnum.USER_ACCOUNT_DELETED
+                };
+            }
+        }
+        return {
+            code: constants.HTTP_STATUS_BAD_REQUEST,
+            status: StatusResponseEnum.FAILED,
+            message: MessageResponseEnum.REQUEST_NOT_FULFILLED
+        };
+
     } catch (error) {
         console.error('Error deleting user:', error);
         return {
