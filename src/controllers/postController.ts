@@ -2,22 +2,12 @@ import { constants } from "http2";
 import { MessageResponseEnum, StatusResponseEnum } from "../constants/enums";
 import { Post } from "../utils/dbUtils";
 import { mySqlConnector } from "../utils/mySqlConnector";
-import { QueryResult } from "mysql2";
 import lodash from 'lodash';
-import mysql from 'mysql2';
-interface ReplyBody {
-    code: number;
-    status: string;
-    message?: string | any;
-    data?: Array<Object> | QueryResult
-}
+import mysql, { QueryResult } from 'mysql2';
+import { PostControllerReplyBodyObject, PostControllerUpdateObject } from "../constants/types";
+import { errorHandler } from "../helper/errorHandler";
 
-interface UpdateObject {
-    category?: string,
-    content?: string
-}
-
-export const createPostController = async (id: number, category: string, content: string): Promise<ReplyBody> => {
+export const createPostController = async (id: number, category: string, content: string): Promise<PostControllerReplyBodyObject> => {
     try {
         category = lodash.startCase(lodash.toLower(category));
         content = lodash.startCase(lodash.toLower(content));
@@ -35,20 +25,11 @@ export const createPostController = async (id: number, category: string, content
             message: MessageResponseEnum.UNABLE_TO_POST,
         };
     } catch (error) {
-        console.error('Error deleting user:', error);
-        let errorString: string = ""
-        if (error instanceof Error) {
-            errorString = error.message
-        }
-        return {
-            code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            status: StatusResponseEnum.FAILED,
-            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
-        };
+        return errorHandler(error)
     }
 }
 
-export const getAllPostController = async (): Promise<ReplyBody> => {
+export const getAllPostController = async (): Promise<PostControllerReplyBodyObject> => {
     try {
         const con: mysql.Connection = await mySqlConnector();
         const query = `
@@ -70,20 +51,11 @@ export const getAllPostController = async (): Promise<ReplyBody> => {
             data: rows
         }
     } catch (error) {
-        console.error('Error deleting user:', error);
-        let errorString: string = ""
-        if (error instanceof Error) {
-            errorString = error.message
-        }
-        return {
-            code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            status: StatusResponseEnum.FAILED,
-            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
-        };
+        return errorHandler(error);
     }
 };
 
-export const getPostByFilterController = async (id?: number, category?: string, username?: string): Promise<ReplyBody> => {
+export const getPostByFilterController = async (id?: number, category?: string, username?: string): Promise<PostControllerReplyBodyObject> => {
     try {
         const con: mysql.Connection = await mySqlConnector();
 
@@ -132,21 +104,12 @@ export const getPostByFilterController = async (id?: number, category?: string, 
             data: rows
         };
     } catch (error) {
-        console.error('Error deleting user:', error);
-        let errorString: string = ""
-        if (error instanceof Error) {
-            errorString = error.message
-        }
-        return {
-            code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            status: StatusResponseEnum.FAILED,
-            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
-        };
+        return errorHandler(error);
     }
 };
 
-export const updatePostController = async (post_id: number, category?: string, content?: string): Promise<ReplyBody> => {
-    const updateObject: UpdateObject = {};
+export const updatePostController = async (post_id: number, category?: string, content?: string): Promise<PostControllerReplyBodyObject> => {
+    const updateObject: PostControllerUpdateObject = {};
 
     if (category) {
         category = lodash.startCase(lodash.toLower(category));
@@ -175,20 +138,11 @@ export const updatePostController = async (post_id: number, category?: string, c
             message: MessageResponseEnum.UPLOADED_SUCCESSFULLY
         }
     } catch (error) {
-        console.error('Error deleting user:', error);
-        let errorString: string = ""
-        if (error instanceof Error) {
-            errorString = error.message
-        }
-        return {
-            code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            status: StatusResponseEnum.FAILED,
-            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
-        };
+        return errorHandler(error);
     }
 }
 
-export const deletePostController = async (post_id: number): Promise<ReplyBody> => {
+export const deletePostController = async (post_id: number): Promise<PostControllerReplyBodyObject> => {
     try {
         const isDeleted: number = await Post.destroy({ where: { id: post_id } })
 
@@ -206,15 +160,6 @@ export const deletePostController = async (post_id: number): Promise<ReplyBody> 
             message: MessageResponseEnum.POST_DELETED_SUCCESSFULLY
         }
     } catch (error) {
-        console.error('Error deleting user:', error);
-        let errorString: string = ""
-        if (error instanceof Error) {
-            errorString = error.message
-        }
-        return {
-            code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            status: StatusResponseEnum.FAILED,
-            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
-        };
+        return errorHandler(error);
     }
 }

@@ -1,18 +1,12 @@
 import { Sequelize, DataTypes, Model, Optional } from 'sequelize';
+import { UserModelAttributes } from '../constants/types';
 
-interface UserAttributes {
-  id: number;
-  username: string;
-  password: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
+interface UserCreationAttributes extends Optional<UserModelAttributes, 'id'> { }
 
 export default function (sequelize: Sequelize) {
-  class User extends Model<UserAttributes, UserCreationAttributes>
-    implements UserAttributes {
+  class User extends Model<UserModelAttributes, UserCreationAttributes>
+    implements UserModelAttributes {
     public id!: number;
     public username!: string;
     public password!: string;
@@ -52,8 +46,8 @@ export default function (sequelize: Sequelize) {
       tableName: 'users',
       underscored: true,
       timestamps: true,
-      createdAt:'created_at',
-      updatedAt:'updated_at'
+      createdAt: 'created_at',
+      updatedAt: 'updated_at'
     }
   );
 

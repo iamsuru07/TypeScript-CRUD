@@ -1,18 +1,10 @@
 import { DataTypes, Model, Optional, Sequelize } from 'sequelize';
+import { PostModelAttributes } from '../constants/types';
 
-interface PostsAttributes {
-  id: number;
-  user_id: number
-  content: string;
-  category: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-interface PostsCreationAttributes extends Optional<PostsAttributes, 'id'> { }
+interface PostsCreationAttributes extends Optional<PostModelAttributes, 'id'> { }
 
 export default function (sequelize: Sequelize) {
-  class Post extends Model<PostsAttributes, PostsCreationAttributes> implements PostsAttributes {
+  class Post extends Model<PostModelAttributes, PostsCreationAttributes> implements PostModelAttributes {
     public id!: number;
     public user_id!: number;
     public content!: string;

@@ -6,6 +6,7 @@ import { connectToDatabase } from './utils/dbUtils';
 import routes from './routes'
 
 const PORT: number = Number(process.env.PORT) || 3000;
+const NODE_ENV = String(process.env.NODE_ENV)
 
 const startServer = async () => {
   await connectToDatabase();
@@ -25,10 +26,10 @@ const startServer = async () => {
       server.log.error(err);
       process.exit(1);
     } else {
-      server.log.info(`Server running`, {
+      server.log.info(`Server Environment is set to ${NODE_ENV} & running at ${PORT}`, {
         data: {
           payload: {
-            port: PORT
+            port: PORT,
           }
         },
       });

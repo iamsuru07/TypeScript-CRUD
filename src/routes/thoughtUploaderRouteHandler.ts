@@ -2,37 +2,12 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { constants } from "http2";
 import { MessageResponseEnum, StatusResponseEnum } from "../constants/enums";
 import { createPostController, deletePostController, getAllPostController, getPostByFilterController, updatePostController } from "../controllers/postController";
-import { QueryResult } from "mysql2";
+import { ThoughtRouteHandlerReplyBody, ThoughtRouteHandlerRequestBody, ThoughtRouteHandlerRequestQuery, ThoughtRouteHandlerResponseDataObject } from "../constants/types";
 
-interface RequestBody {
-    id: number,
-    post_id: number,
-    content?: string;
-    category?: string;
-}
+export const createPosthandler = async (req: FastifyRequest<{ Body: ThoughtRouteHandlerRequestBody }>, reply: FastifyReply): Promise<ThoughtRouteHandlerReplyBody> => {
+    const reqBody: ThoughtRouteHandlerRequestBody = req.body;
 
-interface RequestQuery {
-    id: number,
-    category?: string,
-    username?: string
-}
-interface ResponseDataObject {
-    code: number,
-    status: string,
-    message?: string,
-    data?: Array<Object> | QueryResult
-}
-
-interface ReplyBody {
-    status: string;
-    message?: string | any;
-    data?: Array<Object> | QueryResult
-}
-
-export const createPosthandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
-    const reqBody: RequestBody = req.body;
-
-    const { id, content, category }: RequestBody = reqBody
+    const { id, content, category }: ThoughtRouteHandlerRequestBody = reqBody
 
     if (!id) {
         return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
@@ -55,9 +30,9 @@ export const createPosthandler = async (req: FastifyRequest<{ Body: RequestBody 
         })
     }
 
-    const responseData: ResponseDataObject = await createPostController(id, category, content);
+    const responseData: ThoughtRouteHandlerResponseDataObject = await createPostController(id, category, content);
 
-    let response: ReplyBody = {
+    let response: ThoughtRouteHandlerReplyBody = {
         status: responseData.status,
         message: responseData.message
     }
@@ -65,10 +40,10 @@ export const createPosthandler = async (req: FastifyRequest<{ Body: RequestBody 
     return reply.code(responseData.code).send(response)
 }
 
-export const getAllPostsHandler = async (req: FastifyRequest, reply: FastifyReply): Promise<ReplyBody> => {
-    const responseData: ResponseDataObject = await getAllPostController();
+export const getAllPostsHandler = async (req: FastifyRequest, reply: FastifyReply): Promise<ThoughtRouteHandlerReplyBody> => {
+    const responseData: ThoughtRouteHandlerResponseDataObject = await getAllPostController();
 
-    let response: ReplyBody = {
+    let response: ThoughtRouteHandlerReplyBody = {
         status: responseData.status,
         data: responseData.data
     }
@@ -76,8 +51,8 @@ export const getAllPostsHandler = async (req: FastifyRequest, reply: FastifyRepl
     return reply.code(responseData.code).send(response)
 }
 
-export const getPostsByFilterHandler = async (req: any, reply: FastifyReply): Promise<ReplyBody> => {
-    const { id, category, username }: RequestQuery = req.query
+export const getPostsByFilterHandler = async (req: any, reply: FastifyReply): Promise<ThoughtRouteHandlerReplyBody> => {
+    const { id, category, username }: ThoughtRouteHandlerRequestQuery = req.query
     if (!id && !category && !username) {
         reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
             status: StatusResponseEnum.FAILED,
@@ -85,9 +60,9 @@ export const getPostsByFilterHandler = async (req: any, reply: FastifyReply): Pr
         })
     }
 
-    const responseData: ResponseDataObject = await getPostByFilterController(Number(id), category, username);
+    const responseData: ThoughtRouteHandlerResponseDataObject = await getPostByFilterController(Number(id), category, username);
 
-    let response: ReplyBody = {
+    let response: ThoughtRouteHandlerReplyBody = {
         status: responseData.status,
         data: responseData.data,
         message: responseData.message
@@ -96,8 +71,8 @@ export const getPostsByFilterHandler = async (req: any, reply: FastifyReply): Pr
     return reply.code(responseData.code).send(response);
 }
 
-export const updatePostHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
-    const { id, post_id, content, category }: RequestBody = req.body
+export const updatePostHandler = async (req: FastifyRequest<{ Body: ThoughtRouteHandlerRequestBody }>, reply: FastifyReply): Promise<ThoughtRouteHandlerReplyBody> => {
+    const { id, post_id, content, category }: ThoughtRouteHandlerRequestBody = req.body
 
     if (!id) {
         return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
@@ -120,9 +95,9 @@ export const updatePostHandler = async (req: FastifyRequest<{ Body: RequestBody 
         })
     }
 
-    const responseData: ResponseDataObject = await updatePostController(post_id, category, content);
+    const responseData: ThoughtRouteHandlerResponseDataObject = await updatePostController(post_id, category, content);
 
-    let response: ReplyBody = {
+    let response: ThoughtRouteHandlerReplyBody = {
         status: responseData.status,
         message: responseData.message
     }
@@ -130,8 +105,8 @@ export const updatePostHandler = async (req: FastifyRequest<{ Body: RequestBody 
     return reply.code(responseData.code).send(response)
 }
 
-export const deletePostHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
-    const { post_id }: RequestBody = req.body;
+export const deletePostHandler = async (req: FastifyRequest<{ Body: ThoughtRouteHandlerRequestBody }>, reply: FastifyReply): Promise<ThoughtRouteHandlerReplyBody> => {
+    const { post_id }: ThoughtRouteHandlerRequestBody = req.body;
     if (!post_id) {
         return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
             status: StatusResponseEnum.FAILED,
@@ -139,9 +114,9 @@ export const deletePostHandler = async (req: FastifyRequest<{ Body: RequestBody 
         })
     }
 
-    const responseData: ResponseDataObject = await deletePostController(post_id);
+    const responseData: ThoughtRouteHandlerResponseDataObject = await deletePostController(post_id);
 
-    let response: ReplyBody = {
+    let response: ThoughtRouteHandlerReplyBody = {
         status: responseData.status,
         message: responseData.message
     }

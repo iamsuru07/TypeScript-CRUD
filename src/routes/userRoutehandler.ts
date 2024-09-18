@@ -2,36 +2,37 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { constants } from "http2";
 import { MessageResponseEnum, StatusResponseEnum } from "../constants/enums";
 import { deleteUserController, loginController, signUpController, updatePasswordController, updateUsernameController } from "../controllers/userController";
+import { UserControllerReplyBodyObject, UserRouteHandlerDeleteUserParams, UserRouteHandlerReplyBody, UserRouteHandlerRequestBody, UserRouteHandlerResponseDataObject } from "../constants/types";
 
-interface RequestBody {
-    username: string;
-    password: string;
-    newUsername: string;
-    newPassword: string;
-}
+// interface RequestBody {
+//     username: string;
+//     password: string;
+//     newUsername: string;
+//     newPassword: string;
+// }
 
-interface DeleteUserParams {
-    id: string;
-    username: string;
-}
+// interface DeleteUserParams {
+//     id: string;
+//     username: string;
+// }
 
-export interface ReplyBody {
-    status: string;
-    message: string | unknown;
-    token?: string;
-    user?: Object;
-}
+// export interface ReplyBody {
+//     status: string;
+//     message: string | unknown;
+//     token?: string;
+//     user?: Object;
+// }
 
-export interface ResponseDataObject {
-    code: number;
-    status: string;
-    message: string | unknown;
-    token?: string;
-    user?: Object;
-}
+// export interface ResponseDataObject {
+//     code: number;
+//     status: string;
+//     message: string | unknown;
+//     token?: string;
+//     user?: Object;
+// }
 
-export const signUpHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
-    const reqBody: RequestBody = req.body;
+export const signUpHandler = async (req: FastifyRequest<{ Body: UserRouteHandlerRequestBody }>, reply: FastifyReply): Promise<UserRouteHandlerReplyBody> => {
+    const reqBody: UserRouteHandlerRequestBody = req.body;
 
     const username: string = reqBody.username
     const password: string = reqBody.password
@@ -50,9 +51,9 @@ export const signUpHandler = async (req: FastifyRequest<{ Body: RequestBody }>, 
         })
     }
 
-    const responseData: ResponseDataObject = await signUpController(username, password)
+    const responseData: UserRouteHandlerResponseDataObject = await signUpController(username, password)
 
-    let response: ReplyBody = {
+    let response: UserRouteHandlerReplyBody = {
         status: responseData.status,
         message: responseData.message
     }
@@ -60,8 +61,8 @@ export const signUpHandler = async (req: FastifyRequest<{ Body: RequestBody }>, 
     return reply.code(responseData.code).send(response);
 };
 
-export const loginHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
-    const reqBody: RequestBody = req.body;
+export const loginHandler = async (req: FastifyRequest<{ Body: UserRouteHandlerRequestBody }>, reply: FastifyReply): Promise<UserRouteHandlerReplyBody> => {
+    const reqBody: UserRouteHandlerRequestBody = req.body;
 
     const username: string = reqBody.username
     const password: string = reqBody.password
@@ -80,9 +81,9 @@ export const loginHandler = async (req: FastifyRequest<{ Body: RequestBody }>, r
         })
     }
 
-    const responseData: ResponseDataObject = await loginController(username, password)
+    const responseData: UserRouteHandlerResponseDataObject = await loginController(username, password)
 
-    let response: ReplyBody = {
+    let response: UserRouteHandlerReplyBody = {
         status: responseData.status,
         message: responseData.message,
         user: responseData.user,
@@ -92,8 +93,8 @@ export const loginHandler = async (req: FastifyRequest<{ Body: RequestBody }>, r
     return reply.code(responseData.code).send(response);
 }
 
-export const updatePasswordHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
-    const reqBody: RequestBody = req.body;
+export const updatePasswordHandler = async (req: FastifyRequest<{ Body: UserRouteHandlerRequestBody }>, reply: FastifyReply): Promise<UserRouteHandlerReplyBody> => {
+    const reqBody: UserRouteHandlerRequestBody = req.body;
 
     const username: string = reqBody.username
     const password: string = reqBody.password
@@ -127,9 +128,9 @@ export const updatePasswordHandler = async (req: FastifyRequest<{ Body: RequestB
         })
     }
 
-    const responseData: ResponseDataObject = await updatePasswordController(username, password, newPassword)
+    const responseData: UserRouteHandlerResponseDataObject = await updatePasswordController(username, password, newPassword)
 
-    let response: ReplyBody = {
+    let response: UserRouteHandlerReplyBody = {
         status: responseData.status,
         message: responseData.message
     }
@@ -137,9 +138,9 @@ export const updatePasswordHandler = async (req: FastifyRequest<{ Body: RequestB
     return reply.code(responseData.code).send(response);
 }
 
-export const updateUsernameHandler = async (req: FastifyRequest<{ Body: RequestBody }>, reply: FastifyReply): Promise<ReplyBody> => {
+export const updateUsernameHandler = async (req: FastifyRequest<{ Body: UserRouteHandlerRequestBody }>, reply: FastifyReply): Promise<UserRouteHandlerReplyBody> => {
 
-    const reqBody: RequestBody = req.body;
+    const reqBody: UserRouteHandlerRequestBody = req.body;
 
     const username: string = reqBody.username
     const newUsername: string = reqBody.newUsername
@@ -165,9 +166,9 @@ export const updateUsernameHandler = async (req: FastifyRequest<{ Body: RequestB
         })
     }
 
-    const responseData: ResponseDataObject = await updateUsernameController(username, newUsername)
+    const responseData: UserRouteHandlerResponseDataObject = await updateUsernameController(username, newUsername)
 
-    let response: ReplyBody = {
+    let response: UserRouteHandlerReplyBody = {
         status: responseData.status,
         message: responseData.message,
         user: responseData.user,
@@ -180,8 +181,8 @@ export const updateUsernameHandler = async (req: FastifyRequest<{ Body: RequestB
 export const deleteUserHandler = async (
     req: any, //need to fix this like other thing is not working here
     reply: FastifyReply
-): Promise<ReplyBody> => {
-    const { id, username }: DeleteUserParams = req.params;
+): Promise<UserRouteHandlerReplyBody> => {
+    const { id, username }: UserRouteHandlerDeleteUserParams = req.params;
 
     if (!id) {
         return reply.code(constants.HTTP_STATUS_BAD_REQUEST).send({
@@ -197,9 +198,9 @@ export const deleteUserHandler = async (
         });
     }
 
-    const responseData: ResponseDataObject = await deleteUserController(Number(id), username);
+    const responseData: UserRouteHandlerResponseDataObject = await deleteUserController(Number(id), username);
 
-    const response: ReplyBody = {
+    const response: UserRouteHandlerReplyBody = {
         status: responseData.status,
         message: responseData.message
     };

@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p tsconfig.json",
-    "dev": "nodemon dist/index.js",
+    "dev": "npm run build && node dist/index.js",
     "start": "ts-node src/index.ts"
   },
   "keywords": [],

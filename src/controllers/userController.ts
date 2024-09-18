@@ -3,16 +3,10 @@ import { constants } from "http2";
 import { MessageResponseEnum, StatusResponseEnum } from "../constants/enums";
 import { passwordHasher, passwordMatcher } from "../helper/passwordHasher";
 import { generateJWTToken } from "../helper/generateToken";
+import { UserControllerReplyBodyObject } from "../constants/types";
+import { errorHandler } from "../helper/errorHandler";
 
-interface ReplyBody {
-    code: number;
-    status: string;
-    message: string | unknown;
-    token?: string;
-    user?: Object
-}
-
-export const signUpController = async (username: string, password: string): Promise<ReplyBody> => {
+export const signUpController = async (username: string, password: string): Promise<UserControllerReplyBodyObject> => {
     try {
         // Check if user exists
         const isUserExists = await User.findOne({ where: { username } });
@@ -43,19 +37,11 @@ export const signUpController = async (username: string, password: string): Prom
             message: MessageResponseEnum.REQUEST_NOT_FULFILLED,
         };
     } catch (error) {
-        let errorString: string = ""
-        if (error instanceof Error) {
-            errorString = error.message
-        }
-        return {
-            code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            status: StatusResponseEnum.FAILED,
-            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
-        };
+        return errorHandler(error);
     }
 };
 
-export const loginController = async (username: string, user_password: string): Promise<ReplyBody> => {
+export const loginController = async (username: string, user_password: string): Promise<UserControllerReplyBodyObject> => {
     try {
 
         const auth = await User.findOne({ where: { username }, raw: true })
@@ -90,19 +76,11 @@ export const loginController = async (username: string, user_password: string): 
             token: token
         };
     } catch (error) {
-        let errorString: string = ""
-        if (error instanceof Error) {
-            errorString = error.message
-        }
-        return {
-            code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            status: StatusResponseEnum.FAILED,
-            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
-        };
+        return errorHandler(error);
     }
 };
 
-export const updatePasswordController = async (username: string, password: string, newPassword: string): Promise<ReplyBody> => {
+export const updatePasswordController = async (username: string, password: string, newPassword: string): Promise<UserControllerReplyBodyObject> => {
     try {
         const auth = await User.findOne({ where: { username }, raw: true })
 
@@ -142,19 +120,11 @@ export const updatePasswordController = async (username: string, password: strin
             message: MessageResponseEnum.PASSWORD_UPDATED_SUCCESSFULLY,
         };
     } catch (error) {
-        let errorString: string = ""
-        if (error instanceof Error) {
-            errorString = error.message
-        }
-        return {
-            code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            status: StatusResponseEnum.FAILED,
-            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
-        };
+        return errorHandler(error);
     }
 };
 
-export const updateUsernameController = async (username: string, newUsername: string): Promise<ReplyBody> => {
+export const updateUsernameController = async (username: string, newUsername: string): Promise<UserControllerReplyBodyObject> => {
     try {
         const auth = await User.findOne({ where: { username }, raw: true })
         if (!auth) {
@@ -201,19 +171,11 @@ export const updateUsernameController = async (username: string, newUsername: st
             token: token
         };
     } catch (error) {
-        let errorString: string = ""
-        if (error instanceof Error) {
-            errorString = error.message
-        }
-        return {
-            code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            status: StatusResponseEnum.FAILED,
-            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
-        };
+        return errorHandler(error);
     }
 }
 
-export const deleteUserController = async (id: number, username: string): Promise<ReplyBody> => {
+export const deleteUserController = async (id: number, username: string): Promise<UserControllerReplyBodyObject> => {
     try {
         const isUserDeleted: number = await User.destroy({ where: { id: id, username: username } })
 
@@ -254,15 +216,6 @@ export const deleteUserController = async (id: number, username: string): Promis
         };
 
     } catch (error) {
-        console.error('Error deleting user:', error);
-        let errorString: string = ""
-        if (error instanceof Error) {
-            errorString = error.message
-        }
-        return {
-            code: constants.HTTP_STATUS_INTERNAL_SERVER_ERROR,
-            status: StatusResponseEnum.FAILED,
-            message: errorString || MessageResponseEnum.INTERNAL_SERVER_ERROR,
-        };
+        return errorHandler(error);
     }
 };
